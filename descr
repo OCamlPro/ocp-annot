@@ -1,0 +1,3 @@
+ocp-annot provides two functionalities:
+* Editor support for .annot files
+* Watch a project and translate .cmt files to .annot files

@@ -1,0 +1,130 @@
+The different modes provide the following usual features:
+* indentation (caml,tuareg,ocp-indent)
+* coloring (caml,tuareg)
+* completion (caml,tuareg,ocp-index,merlin,ocamlspot)
+* toplevel
+* evaluation
+* compilation loop
+* skeletons
+* jump to definition (navigation)
+* display type information
+
+Caml/Tuareg ================================================================
+
+Emacs mode:
+ tuareg-find-alternate-file()
+
+Caml-types =================================================================
+
+Emacs mode:
+ caml-types-show-type (arg)
+ caml-types-show-call (arg)
+ caml-types-show-ident (arg)
+ caml-types-explore (event)
+ caml-types-typed-make-overlay (target-buf pos)
+
+ocp-annot ==================================================================
+
+ocp-annot can read .annot files in the project to find interesting
+information.
+
+--query-info-file-pos FILE:POS
+--query-jump-file-pos FILE:POS
+--query-jump-long-ident MODNAME.IDENT
+--find-alternative-file FILENAME
+
+Emacs mode:
+ ocp-annot-print-info-at-point(): print type of expression at point, and iter
+  on enclosing expressions.
+ ocp-annot-print-info-at-point-and-copy ()
+ ocp-annot-jump-to-definition-at-point(): 
+ ocp-annot-jump-to-definition-at-point-other-window()
+ ocp-annot-jump-backward()
+ ocp-annot-find-alternate-file()
+
+ocp-index ==================================================================
+
+ocp-index can read .cmi files (in the project, or installed) to find
+interesting information.
+
+* `ocp-index type Module.ident`
+* `ocp-index complete iden`
+* `ocp-index locate Module.ident`
+* `ocp-index print Module.ident <format>`
+
+Emacs mode:
+ocp-index-print-info (ident)
+ocp-index-print-info-at-point()
+ocp-index-try-expand-symbol-at-point ()
+ocp-index-grep (query)
+ocp-index-jump-to-definition (ident sig other-window)
+ocp-index-jump-to-definition-at-point ()
+ocp-index-jump-to-definition-at-point-other-window ()
+ocp-index-jump-to-sig-at-point ()
+ocp-index-jump-to-sig-at-point-other-window ()
+ocp-index-complete ()
+
+ocamlspot ==================================================================
+
+Emacs mode:
+ ocamlspot-delete-overlays-now ()
+ ocamlspot-pop-jump-stack (): return to previous locations after jumping to
+    definition
+ ocamlspot-query (&optional args): open a frame with the file containing
+    the definition of the identifier at point, its type in the minibuffer
+    (requires the .cmt of the identifier module)
+ ocamlspot-query-interface (): query the .cmti instead of the .cmt
+ ocamlspot-type (&optional to-kill): display the type of the expression
+    or pattern at point in the mini-buffer
+ ocamlspot-type-and-copy (): display type and put it in clipboard
+ ocamlspot-xtype (&optional to-kill): display type in another frame
+ ocamlspot-use (): show the use information of the type under the cursor
+ ocamlspot-query-uses (): return use information 
+ ocamlspot-expand (): expand pattern matching ?
+ ocamlspot-path-range-at-point ()
+ ocamlspot-browse-path-range-at-point ()
+ ocamlspot-xtype-build-query-at-cursor (): with xtype, open a frame to
+   display information, and allow the user to query within that frame
+ ocamlspot-xtype-query ()
+
+merlin =====================================================================
+
+Emacs mode:
+ merlin-toggle-view-errors ()
+ merlin-restart-process ()
+ merlin-kill-instance (instance)
+ merlin-switch-to-ml (name)
+ merlin-switch-to-mli (name)
+ merlin-extension-enable (name)
+ merlin-extension-disable (name)
+ merlin-error-prev (&optional group)
+ merlin-error-next (&optional group)
+ merlin-error-next-in-group ()
+ merlin-error-prev-in-group ()
+ merlin-error-reset ()
+ merlin-type-expr (exp)
+ merlin-type-enclosing-go-up ()
+ merlin-type-enclosing-go-down ()
+ merlin--copy-enclosing ()
+ merlin-type-enclosing ()
+ merlin-enclosing-expand ()
+ merlin--destruct-enclosing ()
+ merlin-destruct ()
+ merlin-use (pkg)
+ merlin-goto-project-file ()
+ merlin-flags-set (flag-string)
+ merlin-locate-ident (ident)
+ merlin-locate ()
+ merlin-pop-stack ()
+ merlin-jump (&optional target)
+ merlin-document ()
+ merlin-occurrences ()
+ merlin-phrase-next ()
+ merlin-phrase-prev ()
+ merlin-error-check ()
+ merlin-project-check ()
+ merlin-customize ()
+ merlin-version ()
+ merlin-dump (arg)
+ merlin-setup ()
+ merlin-view-log ()
