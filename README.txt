@@ -12,6 +12,9 @@ It provides the following features:
 
 First, install the `ocp-annot` binary in a generic binary location
 (not a switch if possible).
+The other tool, `ocp-genannot` is tied to a particular OCaml version,
+so it should be installed in the current switch, used to compile
+`ocp-annot`.
 
 ### Emacs configuration
 
@@ -77,4 +80,18 @@ The following functions are available:
 * ocp-annot-jump-to-definition-at-point (C-c ;)
 * ocp-annot-jump-to-definition-at-point-other-window
 * ocp-annot-find-alternate-file (C-C C-a)
+
+## Watch mode
+
+`ocp-annot --watch` can be used to monitor a project, and translate
+any .cmt file into a .annot file.
+
+To translate .cmt files into .annot files, ocp-annot will try the
+following cases:
+* If running at the top of the OCaml distribution, ocp-annot will
+  use `tools/read_cmt`.
+* If `ocaml_cmt` is available, it will use it. There is an OCaml PR on
+  Github to install `read_cmt` as `ocaml_cmt` with OCaml.
+* Otherwise, it will use `ocp-gennanot`, that is available from the
+  `ocp-annot` package.
 

@@ -1,0 +1,33 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+begin program "ocp-annot"
+    files = [
+     "annotFiles.ml" ( file2string = [
+                  "files/ocp-annot.el";
+      ]);
+      "annotQueryTypes.ml";
+      "annotMisc.ml";
+      "annotEmacs.ml";
+      "annotJSON.ml";
+      "annotQueryMisc.ml";
+      "annotQuery.ml";
+
+      "annotWatch.ml";
+
+      "annotMain.ml";
+    ]
+    requires = [
+    "ocplib-compiler-annot" ;
+    "ocplib-lang";
+    ]
+end
