@@ -17,6 +17,8 @@ _olint
 # backups of modified files
 *~
 
+/autoconf/config.ocp2gen
+
 # for ocp-annot
 *.annot
 

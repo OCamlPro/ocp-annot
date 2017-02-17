@@ -10,7 +10,7 @@
 AC_INIT(ocp-annot,1.0)
 CONFIGURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2017 OCamlPro SAS)
-OCAML_MINIMAL_VERSION=3.12.1
+OCAML_MINIMAL_VERSION=4.03.0
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_ARG_ENABLE(version-check,
@@ -121,8 +121,8 @@ AC_CHECK_OCAML_PKG(ocp-build)
 if test "$OCAML_PKG_ocp_build" = "no"; then
    AC_MSG_ERROR([Please install OCaml package 'ocp-build'.])
 fi
-  AX_COMPARE_VERSION( [$OCAML_PKG_ocp_build_VERSION], [lt], [1.99.16-beta],
-     AC_MSG_ERROR([Version 1.99.16-beta of ocp-build is needed]))
+  AX_COMPARE_VERSION( [$OCAML_PKG_ocp_build_VERSION], [lt], [1.99.17-beta],
+     AC_MSG_ERROR([Version 1.99.17-beta of ocp-build is needed]))
 OPAM_REPO=/home/lefessan/WindowsSharedFolder/opam-repository-with-archives
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
 OPAM_REPO_FORK_REMOTE=origin
@@ -174,7 +174,7 @@ AC_SUBST(OCAMLDOC)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAML_USE_BINANNOT)
-AC_CONFIG_FILES(Makefile.config config.ocpgen config.ocp2gen ocaml-config.h)
+AC_CONFIG_FILES(Makefile.config config.ocpgen ocaml-config.h)
 AC_OUTPUT
 
 echo

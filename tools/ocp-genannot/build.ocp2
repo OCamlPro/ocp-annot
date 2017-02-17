@@ -1,0 +1,22 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+begin
+  ocaml.files = [
+     "cmt2annot.ml",  { pp = ocp_pp };
+     "read_cmt.ml",  { pp = ocp_pp };
+  ];
+  ocaml.requires = [
+    "compiler-libs.common" ;
+  ];
+  OCaml.program("ocp-genannot", ocaml);
+end

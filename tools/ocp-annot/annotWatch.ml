@@ -318,6 +318,20 @@ let watch c =
       false
   in
 
+  let read_cmt =
+    if ocaml_mode then
+      "./boot/ocamlrun ./tools/read_cmt"
+    else
+      match AnnotMisc.has_tool "ocaml_cmt" with
+      | Some tool -> tool
+      | None ->
+        match AnnotMisc.has_tool "ocp-genannot" with
+        | Some tool -> tool
+        | None ->
+          Printf.eprintf "Error: cannot locate `ocaml_cmt` or `ocp-genannot`\n%!";
+          exit 2
+  in
+
   let includes =
     let project_includes = List.rev c.project_includes in
     if ocaml_mode then
@@ -328,14 +342,10 @@ let watch c =
   while true do
     begin
       try
-        let read_cmt =
-          if ocaml_mode then begin
-            check_read_cmt c;
-            if not (Sys.file_exists read_cmt_filename) then raise Not_found;
-            "./boot/ocamlrun ./tools/read_cmt"
-          end else
-            "ocaml_cmt"
-        in
+        if ocaml_mode then begin
+          check_read_cmt c;
+          if not (Sys.file_exists read_cmt_filename) then raise Not_found;
+        end;
         let cmt_files = ref [] in
         let ml_files = ref [] in
         AnnotMisc.iter_files "." (fun filename ->

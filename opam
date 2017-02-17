@@ -7,6 +7,13 @@
 (**************************************************************)
 
 opam-version: "1.2"
+maintainer: "Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>"
+authors: [
+  "Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>"
+]
+homepage: "http://www.typerex.org/"
+dev-repo: "https://github.com/OCamlPro/ocp-annot.git"
+bug-reports: "https://github.com/OCamlPro/ocp-annot/issues"
 build: [
   [     "./configure"
     "--prefix"
@@ -26,6 +33,6 @@ remove: [
 ]
 depends: [
      "ocamlfind"
-     "ocp-build" {>= "1.99.16-beta" }
+     "ocp-build" {>= "1.99.17-beta" }
 ]
-available: [ocaml-version >= "3.12.1"]
+available: [ocaml-version >= "4.03.0"]
