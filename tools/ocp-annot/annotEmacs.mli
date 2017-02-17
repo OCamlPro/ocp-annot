@@ -10,26 +10,5 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module TYPES : sig
-
-  type config = {
-    max_rec : int;
-    query_chdir : string option;
-    timeout : float;
-  }
-
-end
-
-val emacs_mode : unit -> unit
-val json_mode : unit -> unit
-
-val query_info_file_pos : TYPES.config -> string -> unit
-val query_jump_file_pos : TYPES.config -> string -> unit
-val query_jump_long_ident : TYPES.config -> string -> unit
-val query_alternate_file : TYPES.config -> string -> unit
-val query_file_long_ident : TYPES.config -> string -> unit
-val query_local_uses_long_ident : TYPES.config -> string -> unit
-
 val output_config : unit -> unit
-
-val wrap : TYPES.config -> (TYPES.config -> 'a -> unit) -> 'a -> unit
+val string_of_output : AnnotQueryTypes.output -> string

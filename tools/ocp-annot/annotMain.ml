@@ -11,21 +11,25 @@
 (**************************************************************************)
 
 open StringCompat
-open AnnotWatch.TYPES
 open AnnotParser.TYPES
+open AnnotWatch.TYPES
+open AnnotQuery.TYPES
 
 
 let quiet = ref false
 let verbose = ref false
 let project_includes = ref []
 let watch_delay = ref 2
+let chdir = ref None
+let max_rec = ref 3
 
 let watch () =
   AnnotWatch.watch {
     quiet = !quiet;
     project_includes = !project_includes;
     verbose = !verbose;
-    delay = !watch_delay;
+    watch_delay = !watch_delay;
+    watch_chdir = !chdir;
   }
 
 let just_parse filename =
@@ -41,7 +45,14 @@ let set_action f arg =
   | None -> action := Some (fun () -> f arg)
   | Some _ -> raise AmbiguousAction
 
-let set_query_action f arg = set_action (AnnotQuery.wrap f) arg
+let set_query_action f arg =
+  set_action (fun arg ->
+    let c = {
+      max_rec = !max_rec;
+      query_chdir = !chdir;
+      timeout = 2.0;
+    } in
+    AnnotQuery.wrap c f arg) arg
 
 let arg_list_query = [
 
@@ -60,7 +71,15 @@ let arg_list_query = [
 
   "--query-jump-long-ident",
   Arg.String (set_query_action AnnotQuery.query_jump_long_ident),
-  "LIDENT Query jump info at pos {action}";
+  "LIDENT Query jump info on LIDENT {action}";
+
+  "--query-file-long-ident",
+  Arg.String (set_query_action AnnotQuery.query_file_long_ident),
+  "LIDENT Query file info on LIDENT {action}";
+
+  "--query-local-uses-long-ident",
+  Arg.String (set_query_action AnnotQuery.query_local_uses_long_ident),
+  "LIDENT Query file info on LIDENT {action}";
 
   "--query-alternate-file",
   Arg.String (set_query_action AnnotQuery.query_alternate_file),
@@ -97,6 +116,8 @@ let arg_list_misc = [
   "-q", Arg.Set quiet,
   " Quiet mode (equivalent to --quiet)";
 
+  "--chdir", Arg.String (fun s -> chdir := Some s),
+  "DIR Perform action in DIR";
   "--just-parse", Arg.String (set_action just_parse),
   "FILE Just parse .annot file FILE for testing {action}";
 ]

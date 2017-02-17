@@ -30,8 +30,10 @@ module TYPES = struct
     project_includes : string list;
     verbose : bool;
     quiet : bool;
-    delay : int;
+    watch_delay : int;
+    watch_chdir : string option;
   }
+
 end
 
 open TYPES
@@ -139,18 +141,6 @@ let check_read_cmt c =
     if retcode <> 0 then raise Not_found;
     Unix.chdir pwd;
   end
-
-
-let rec iter_files dir f =
-  let files = try Sys.readdir dir with _ -> [||]  in
-  Array.iter (fun file ->
-    let filename = Filename.concat dir file in
-    if try Sys.is_directory filename with _ -> false then
-      iter_files filename f
-    else
-      f filename
-  ) files
-
 
 let dev_null = " > /dev/null 2> /dev/null"
 
@@ -295,7 +285,7 @@ let check_ml file_name =
       ()
 
 let clean () =
-  iter_files "." (fun filename ->
+  AnnotMisc.iter_files "." (fun filename ->
     if Filename.check_suffix filename ".annot" then
       try Sys.remove filename with _ ->
         Printf.eprintf "Error: cannot remove %S\n%!" filename
@@ -348,7 +338,7 @@ let watch c =
         in
         let cmt_files = ref [] in
         let ml_files = ref [] in
-        iter_files "." (fun filename ->
+        AnnotMisc.iter_files "." (fun filename ->
           if Filename.check_suffix filename ".cmt" then
             cmt_files := filename :: !cmt_files
           else
@@ -359,6 +349,6 @@ let watch c =
         List.iter (check_cmt c read_cmt includes) !cmt_files;
       with Not_found -> ()
     end;
-    Unix.sleep c.delay;
+    Unix.sleep c.watch_delay;
   done;
   assert false

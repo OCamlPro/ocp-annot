@@ -16,7 +16,8 @@ type config = {
   project_includes : string list;
   verbose : bool;
   quiet : bool;
-  delay : int;
+  watch_delay : int;
+  watch_chdir : string option;
 }
 
 end

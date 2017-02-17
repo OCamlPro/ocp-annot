@@ -10,26 +10,31 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module TYPES : sig
+open StringCompat
+open AnnotParser.TYPES
+open AnnotQueryTypes
 
-  type config = {
-    max_rec : int;
-    query_chdir : string option;
-    timeout : float;
-  }
-
-end
-
-val emacs_mode : unit -> unit
-val json_mode : unit -> unit
-
-val query_info_file_pos : TYPES.config -> string -> unit
-val query_jump_file_pos : TYPES.config -> string -> unit
-val query_jump_long_ident : TYPES.config -> string -> unit
-val query_alternate_file : TYPES.config -> string -> unit
-val query_file_long_ident : TYPES.config -> string -> unit
-val query_local_uses_long_ident : TYPES.config -> string -> unit
-
-val output_config : unit -> unit
-
-val wrap : TYPES.config -> (TYPES.config -> 'a -> unit) -> 'a -> unit
+let string_of_output v =
+  let b = Buffer.create 100 in
+  let rec iter v =
+    match v with
+    | Int n -> Printf.bprintf b "%d" n
+    | String s -> Printf.bprintf b "%S" s
+    | Record labels ->
+      Printf.bprintf b "{";
+      List.iteri (fun i (label, v) ->
+        if i > 0 then Buffer.add_char b ',';
+        Printf.bprintf b "\"%s\": " label;
+        iter v;
+      ) labels;
+      Printf.bprintf b "}";
+    | List values ->
+      Printf.bprintf b "[ ";
+      List.iteri (fun i v ->
+        if i > 0 then Buffer.add_string b ", ";
+        iter v;
+      ) values;
+      Printf.bprintf b "]";
+  in
+  iter v;
+  Buffer.contents b

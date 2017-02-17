@@ -10,26 +10,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module TYPES : sig
+val find_by_path :
+  AnnotQueryTypes.config ->
+  int -> (* max_rec *)
+  (string -> string list -> 'a) ->
+  string -> (* LIDENT *)
+  'a
 
-  type config = {
-    max_rec : int;
-    query_chdir : string option;
-    timeout : float;
-  }
+val query_at_pos :
+  string -> (* POSITION *)
+  (int * AnnotParser.TYPES.location * AnnotParser.TYPES.kind list) list
 
-end
-
-val emacs_mode : unit -> unit
-val json_mode : unit -> unit
-
-val query_info_file_pos : TYPES.config -> string -> unit
-val query_jump_file_pos : TYPES.config -> string -> unit
-val query_jump_long_ident : TYPES.config -> string -> unit
-val query_alternate_file : TYPES.config -> string -> unit
-val query_file_long_ident : TYPES.config -> string -> unit
-val query_local_uses_long_ident : TYPES.config -> string -> unit
-
-val output_config : unit -> unit
-
-val wrap : TYPES.config -> (TYPES.config -> 'a -> unit) -> 'a -> unit
+val iter_idents :
+  string -> (* annot_filename *)
+  (AnnotParser.TYPES.location -> AnnotParser.TYPES.ident -> unit) ->
+  unit

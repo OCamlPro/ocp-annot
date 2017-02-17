@@ -34,6 +34,18 @@ You might also want to replace in the previous lines 'ocp-annot-mode
 * 'ocp-annot-when-no-ocamlspot : `ocp-annot` will be used when
     `ocamlspot` is not found in the PATH when starting Emacs.
 
+You can also define your own keymap for `ocp-annot-mode`:
+===================================
+(setq ocp-annot-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-t") 'ocp-annot-print-info-at-point)
+    (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point)
+    (define-key map (kbd "C-c C-a") 'ocp-annot-find-alternate-file)
+    (define-key map (kbd "C-c C-m") 'ocp-annot-find-file-symbol-at-point)
+    map))
+===================================
+
+
 ## Usage
 
 From the command line, the following arguments are available:

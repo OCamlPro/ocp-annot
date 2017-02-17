@@ -20,6 +20,7 @@
     (define-key map (kbd "C-c C-t") 'ocp-annot-print-info-at-point)
     (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point)
     (define-key map (kbd "C-c C-a") 'ocp-annot-find-alternate-file)
+    (define-key map (kbd "C-c C-m") 'ocp-annot-find-file-symbol-at-point)
 ;    (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point-other-window)
 ;    (define-key map (kbd "C-c :") 'ocp-annot-jump-to-sig-at-point-other-window)
 ;    (define-key map (kbd "C-c C-;") 'ocp-annot-jump-to-definition-at-point)
@@ -60,6 +61,23 @@
   "Location in FILE:POS format of point"
   (format "%s:%d" (buffer-file-name)
           (ocp-annot-bufferpos-to-filepos (point))))
+
+
+(defun ocp-annot-bounds-of-symbol-at-point ()
+  "Matches the fully qualified identifier at point, eg [M1.M2.someval] but
+   also somerecord.[M1.M2.somefield]"
+  (let ((case-fold-search nil))
+    (save-excursion
+      (while (looking-back "\\<\\([A-Z][a-zA-Z0-9_']*\.\\)*[a-zA-Z0-9_']*"
+                           (line-beginning-position) nil)
+        (goto-char (match-beginning 0)))
+      (when (looking-at "[a-zA-Z0-9_'.]*[a-zA-Z0-9_']")
+        (cons (match-beginning 0) (match-end 0))))))
+
+(defun ocp-annot-symbol-at-point ()
+  (let ((bounds (ocp-annot-bounds-of-symbol-at-point)))
+    (when bounds
+      (buffer-substring-no-properties (car bounds) (cdr bounds)))))
 
 ;;
 ;;
@@ -346,7 +364,6 @@
   (let* (
          (name buffer-file-name)
          (output (ocp-annot-run "--query-alternate-file" name))
-         (m0 (message (format "[%s]" output)))
          (res (read-from-string output))
          (infos (car-safe res))
          (file (cdr (assoc :file infos)))
@@ -360,5 +377,26 @@
             (find-file file))
       (if file (find-file file)))
     )
+  )
+
+;;
+;;
+;;
+;;     Jumping between interface/implementation
+;;
+;;
+;;
+
+(defun ocp-annot-find-file-symbol-at-point ()
+  "Switch Implementation/Interface."
+  (interactive)
+  (let* (
+         (lident (ocp-annot-symbol-at-point))
+         (output (ocp-annot-run "--query-file-long-ident" lident))
+         (res (read-from-string output))
+         (infos (car-safe res))
+         (file (cdr (assoc :file infos)))
+         )
+    (if file (find-file file)))
   )
       

@@ -10,26 +10,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module TYPES : sig
+val has_tool : string -> string option
+val pos_of_pos :
+  AnnotParser.TYPES.position -> AnnotQueryTypes.output
 
-  type config = {
-    max_rec : int;
-    query_chdir : string option;
-    timeout : float;
-  }
+(* From current directory, find how deep we are in the project
+   (probably to bound how up we can backtrack when searching) *)
+val find_max_rec : AnnotQueryTypes.config -> string -> int
+val find_project_root : unit -> (string * int) option
 
-end
+val use_absolute_pos : bool ref
 
-val emacs_mode : unit -> unit
-val json_mode : unit -> unit
+val output_config : (unit -> unit) ref
+val output_function : (AnnotQueryTypes.output -> string) ref
 
-val query_info_file_pos : TYPES.config -> string -> unit
-val query_jump_file_pos : TYPES.config -> string -> unit
-val query_jump_long_ident : TYPES.config -> string -> unit
-val query_alternate_file : TYPES.config -> string -> unit
-val query_file_long_ident : TYPES.config -> string -> unit
-val query_local_uses_long_ident : TYPES.config -> string -> unit
+val is_directory : string -> bool
+val readdir : string -> string array
 
-val output_config : unit -> unit
+val start_time : float
+val check_time : AnnotQueryTypes.config -> unit
 
-val wrap : TYPES.config -> (TYPES.config -> 'a -> unit) -> 'a -> unit
+val iter_files : string -> (string -> unit) -> unit

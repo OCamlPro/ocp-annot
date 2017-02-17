@@ -16,3 +16,10 @@ _olint
 
 # backups of modified files
 *~
+
+# for ocp-annot
+*.annot
+
+# for ocp-check-headers
+/headers-??.txt
+/check-headers.undo

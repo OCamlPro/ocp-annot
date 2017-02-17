@@ -15,8 +15,15 @@ begin
      "annotFiles.ml", { file2string = [
                   "files/ocp-annot.el";
       ] };
-      "annotWatch.ml";
+      "annotQueryTypes.ml";
+      "annotMisc.ml";
+      "annotEmacs.ml";
+      "annotJSON.ml";
+      "annotQueryMisc.ml";
       "annotQuery.ml";
+
+      "annotWatch.ml";
+
       "annotMain.ml";
   ];
   ocaml.requires = [
