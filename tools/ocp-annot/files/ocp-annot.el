@@ -21,6 +21,7 @@
     (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point)
     (define-key map (kbd "C-c C-a") 'ocp-annot-find-alternate-file)
     (define-key map (kbd "C-c C-m") 'ocp-annot-find-file-symbol-at-point)
+    (define-key map (kbd "C-c C-u") 'ocp-annot-find-occurrences-at-point)
 ;    (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point-other-window)
 ;    (define-key map (kbd "C-c :") 'ocp-annot-jump-to-sig-at-point-other-window)
 ;    (define-key map (kbd "C-c C-;") 'ocp-annot-jump-to-definition-at-point)
@@ -90,14 +91,14 @@
 ;; ocamlspot.el uses a different computation, maybe we should try the same one
 ;; if we find a performance problem
 (defun ocp-annot-location2-at-point ()
-  "Location in FILE:LINE:LINEPOS format of point"
+  "Location in FILE,LINE,LINEPOS format of point"
   (let*(
         (line (count-lines (point-min) (min (1+ (point)) (point-max))))
         (line-pos
          (- (ocp-annot-bufferpos-to-filepos (point))
             (ocp-annot-bufferpos-to-filepos (line-beginning-position))))
       )
-    (format "%s:%d:%d"
+    (format "%s,%d,%d"
             (buffer-file-name) line line-pos)))
 
 ;; Some code taken from ocamlspot.el (by Jun Furuse)
@@ -400,3 +401,14 @@
     (if file (find-file file)))
   )
       
+(defun ocp-annot-find-occurrences-at-point()
+  (interactive)
+  (let* (
+         (file buffer-file-name)
+         (lident (ocp-annot-symbol-at-point))
+         (compile-command
+          (format "%s --query-occurrences-long-ident %s,%s"
+                  ocp-annot-path file lident))
+         )
+    (recompile)
+  ))

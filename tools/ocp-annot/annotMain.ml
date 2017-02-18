@@ -77,9 +77,13 @@ let arg_list_query = [
   Arg.String (set_query_action AnnotQuery.query_file_long_ident),
   "LIDENT Query file info on LIDENT {action}";
 
-  "--query-local-uses-long-ident",
-  Arg.String (set_query_action AnnotQuery.query_local_uses_long_ident),
-  "LIDENT Query file info on LIDENT {action}";
+  "--query-uses-long-ident",
+  Arg.String (set_query_action AnnotQuery.query_uses_long_ident),
+  "LIDENT Query uses of LIDENT {action}";
+
+  "--query-occurrences-long-ident",
+  Arg.String (set_query_action AnnotQuery.query_occurrences_long_ident),
+  "LIDENT Query locations of uses of LIDENT {action}";
 
   "--query-alternate-file",
   Arg.String (set_query_action AnnotQuery.query_alternate_file),

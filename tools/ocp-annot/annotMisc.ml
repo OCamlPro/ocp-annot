@@ -31,12 +31,13 @@ let is_directory file =
 let readdir dir =
   try Sys.readdir dir with _ -> [||]
 
-let rec iter_files dir f =
+let rec iter_files ?(skip=StringSet.empty) dir f =
   let files = readdir dir in
   Array.iter (fun file ->
     let filename = Filename.concat dir file in
     if is_directory filename then
-      iter_files filename f
+      (if not (StringSet.mem file skip) then
+          iter_files filename f)
     else
       f filename
   ) files
@@ -115,3 +116,14 @@ let log_exn exn  =
     if bt <> "" then
       Printf.kprintf printer "Backtrace:\n%s\n%!" bt
   )
+
+let skip_dirs =
+  StringSet.of_list [
+    ".git"; "_obuild"; "_build"; ".svn";
+  ]
+
+(*
+# Local Variables:
+# compile-command: "make -C ../.."
+# End:
+*)
