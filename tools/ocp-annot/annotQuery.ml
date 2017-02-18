@@ -296,18 +296,7 @@ let wrap c f arg =
     end;
     f c arg
   with exn ->
-    let bt = Printexc.get_backtrace () in
-    let oc =
-      open_out_gen [ Open_creat; Open_append ] 0o644 "/tmp/ocp-annot.log" in
-    Printf.fprintf oc
-      "'%s'\n" (String.concat "' '"
-                  (Array.to_list Sys.argv));
-    Printf.fprintf oc "dir: %S\n" (Sys.getcwd ());
-    Printf.fprintf oc
-      "Error: exception %s\n" (Printexc.to_string exn);
-    if bt <> "" then
-      Printf.fprintf oc "Backtrace:\n%s\n%!" bt;
-    close_out oc;
+    AnnotMisc.log_exn exn;
     let infos = [ "error",
                   String (Printf.sprintf "Error: exception %s"
                             (Printexc.to_string exn)) ] in
