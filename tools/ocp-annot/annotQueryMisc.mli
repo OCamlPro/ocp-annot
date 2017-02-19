@@ -25,3 +25,5 @@ val iter_idents :
   string -> (* annot_filename *)
   (AnnotParser.TYPES.location -> AnnotParser.TYPES.ident -> unit) ->
   unit
+
+val split_lident : string -> string * string list

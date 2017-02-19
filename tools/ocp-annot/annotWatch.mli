@@ -23,5 +23,5 @@ type config = {
 end
 
 val clean : unit -> unit
-
 val watch : TYPES.config -> 'a
+val check : unit -> unit

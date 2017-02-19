@@ -30,4 +30,12 @@ val readdir : string -> string array
 val start_time : float
 val check_time : AnnotQueryTypes.config -> unit
 
-val iter_files : string -> (string -> unit) -> unit
+val skip_dirs : StringCompat.StringSet.t
+val iter_files :
+  ?skip:StringCompat.StringSet.t ->
+  string -> (string -> unit) -> unit
+
+(* [with_log f] calls [f printer] where [printer] prints
+   a line in /tmp/ocp-annot.log *)
+val with_log : ((string -> unit) -> 'a) -> unit
+val log_exn : exn -> unit

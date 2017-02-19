@@ -291,6 +291,13 @@ let clean () =
         Printf.eprintf "Error: cannot remove %S\n%!" filename
   )
 
+let check () =
+  Sys.signal Sys.sighup Sys.Signal_ignore;
+  let cmd =  "killall -HUP ocp-annot" in
+  Printf.eprintf "%s\n%!" cmd;
+  let retcode = Sys.command cmd in
+  if retcode = 0 then
+    Printf.eprintf "Check /tmp/ocp-annot.log for results\n%!"
 
 let watch c =
   (*
@@ -331,6 +338,16 @@ let watch c =
           Printf.eprintf "Error: cannot locate `ocaml_cmt` or `ocp-genannot`\n%!";
           exit 2
   in
+
+  let save_state () =
+    AnnotMisc.with_log (fun printer ->
+      Printf.kprintf printer "dir: %s" (Sys.getcwd ());
+      Printf.kprintf printer "ocaml_cmt: %s" read_cmt;
+      ()
+    )
+  in
+  Sys.signal Sys.sighup
+    (Sys.Signal_handle (fun n -> save_state ()));
 
   let includes =
     let project_includes = List.rev c.project_includes in

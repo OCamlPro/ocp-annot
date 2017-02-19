@@ -77,9 +77,13 @@ let arg_list_query = [
   Arg.String (set_query_action AnnotQuery.query_file_long_ident),
   "LIDENT Query file info on LIDENT {action}";
 
-  "--query-local-uses-long-ident",
-  Arg.String (set_query_action AnnotQuery.query_local_uses_long_ident),
-  "LIDENT Query file info on LIDENT {action}";
+  "--query-uses-long-ident",
+  Arg.String (set_query_action AnnotQuery.query_uses_long_ident),
+  "LIDENT Query uses of LIDENT {action}";
+
+  "--query-occurrences-long-ident",
+  Arg.String (set_query_action AnnotQuery.query_occurrences_long_ident),
+  "LIDENT Query locations of uses of LIDENT {action}";
 
   "--query-alternate-file",
   Arg.String (set_query_action AnnotQuery.query_alternate_file),
@@ -101,6 +105,9 @@ let arg_list_watch = [
 
   "--clean", Arg.Unit (set_action AnnotWatch.clean),
   " Clear all .annot files {action}";
+
+  "--check", Arg.Unit (set_action AnnotWatch.check),
+  " Send HUP to all ocp-annot processus to fill log";
 
   "--watch-delay", Arg.Int ((:=) watch_delay),
   Printf.sprintf "SECS Delay in seconds between scans (default %d)"
@@ -183,16 +190,4 @@ let () =
   try
     main ()
   with exn ->
-    (* The same code exists in annotQuery.ml, we should factorize at
-       some point *)
-    let bt = Printexc.get_backtrace () in
-    let oc =
-      open_out_gen [ Open_creat; Open_append ] 0o644 "/tmp/ocp-annot.log" in
-    Printf.fprintf oc
-      "'%s'\n" (String.concat "' '"
-                  (Array.to_list Sys.argv));
-    Printf.fprintf oc
-      "Error: exception %s\n" (Printexc.to_string exn);
-    if bt <> "" then
-      Printf.fprintf oc "Backtrace:\n%s\n%!" bt;
-    close_out oc
+    AnnotMisc.log_exn exn
