@@ -20,8 +20,11 @@ so it should be installed in the current switch, used to compile
 
 Edit your .emacs and add the following:
 ==================================
-(with-temp-buffer (insert (shell-command-to-string
-  "ocp-annot --emacs --output-config")) (eval-buffer))
+(let*
+    ((ocp-annot-binary (executable-find "ocp-annot")))
+  (if ocp-annot-binary
+    (with-temp-buffer (insert (shell-command-to-string
+     "ocp-annot --emacs --output-config")) (eval-buffer))))
 ==================================
 
 Depending on your OCaml mode, pick one of the two following lines:
