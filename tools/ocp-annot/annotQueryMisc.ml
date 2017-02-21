@@ -60,7 +60,7 @@ let query_at_pos file_pos =
     let pos_file =
       let basename = Filename.basename pos_file in
       try
-        StringMap.find basename annot_basenames
+        StringMap.find basename !annot_basenames
       with Not_found ->
         Printf.kprintf failwith "ocp-annot: annotations not for %s" pos_file
     in
@@ -155,12 +155,12 @@ let find_by_path c max_rec f path =
   iter "." 0
 
 let iter_idents annot_file f =
-  let { annot_infos } = AnnotParser.parse_file annot_file in
+  let annot_file = AnnotParser.parse_file annot_file in
   List.iter (fun (loc, infos) ->
     List.iter (function
     | Type _ -> ()
     | Ident ident ->
-      let ident = AnnotParser.parse_ident ident in
+      let ident = AnnotParser.parse_ident annot_file ident in
       f loc ident
     ) infos
-  ) annot_infos
+  ) annot_file.annot_infos

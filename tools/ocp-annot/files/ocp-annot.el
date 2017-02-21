@@ -21,7 +21,8 @@
     (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point)
     (define-key map (kbd "C-c C-a") 'ocp-annot-find-alternate-file)
     (define-key map (kbd "C-c C-m") 'ocp-annot-find-file-symbol-at-point)
-    (define-key map (kbd "C-c C-u") 'ocp-annot-find-occurrences-at-point)
+    (define-key map (kbd "C-c C-u") 'ocp-annot-find-ident-at-point)
+    (define-key map (kbd "C-c C-o") 'ocp-annot-local-occur-at-point)
 ;    (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point-other-window)
 ;    (define-key map (kbd "C-c :") 'ocp-annot-jump-to-sig-at-point-other-window)
 ;    (define-key map (kbd "C-c C-;") 'ocp-annot-jump-to-definition-at-point)
@@ -393,7 +394,7 @@
     (if file (find-file file)))
   )
 
-(defun ocp-annot-find-occurrences-at-point()
+(defun ocp-annot-find-ident-at-point()
   (interactive)
   (let* (
          (file buffer-file-name)
@@ -401,6 +402,17 @@
          (compile-command
           (format "%s --query-occur-long-ident %s,%s"
                   ocp-annot-path file lident))
+         )
+    (recompile)
+  ))
+
+(defun ocp-annot-local-occur-at-point()
+  (interactive)
+  (let* (
+         (file-pos (ocp-annot-location-at-point))
+         (compile-command
+          (format "%s --query-local-occur-file-pos %s"
+                  ocp-annot-path file-pos))
          )
     (recompile)
   ))

@@ -87,11 +87,11 @@ let arg_list_query = [
 
   "--query-local-uses-file-pos",
   Arg.String (set_query_action AnnotQuery.query_local_uses_pos),
-  "LIDENT Query uses of LIDENT {action}";
+  "POSITION Query uses of ident at POSITION {action}";
 
   "--query-local-occur-file-pos",
   Arg.String (set_query_action AnnotQuery.query_local_occur_pos),
-  "LIDENT Query locations of uses of LIDENT {action}";
+  "POSITION Query locations of uses of ident at POSITION {action}";
 
   "--query-alternate-file",
   Arg.String (set_query_action AnnotQuery.query_alternate_file),

@@ -16,7 +16,7 @@ all: _obuild
 	fi
 
 install:
-	ocp-build install ocp-annot
+	ocp-build install ocp-annot ocplib-compiler-annot ocplib-tool-annot
 	if test -f _obuild/ocp-genannot/ocp-genannot.asm; then \
 	  cp _obuild/ocp-genannot/ocp-genannot.asm \
 	    $(bindir)/ocp-genannot; \
