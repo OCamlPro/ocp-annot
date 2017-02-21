@@ -19,19 +19,21 @@ so it should be installed in the current switch, used to compile
 ### Emacs configuration
 
 Edit your .emacs and add the following:
-==================================
+
+```
 (let*
     ((ocp-annot-binary (executable-find "ocp-annot")))
   (if ocp-annot-binary
     (with-temp-buffer (insert (shell-command-to-string
      "ocp-annot --emacs --output-config")) (eval-buffer))))
-==================================
+```
 
 Depending on your OCaml mode, pick one of the two following lines:
-==================================
+
+```
 (add-hook 'tuareg-mode-hook 'ocp-annot-mode t)
 (add-hook 'caml-mode-hook 'ocp-annot-mode t)
-===================================
+```
 
 You might also want to replace in the previous lines 'ocp-annot-mode
   with one of the following:
@@ -41,7 +43,7 @@ You might also want to replace in the previous lines 'ocp-annot-mode
     `ocamlspot` is not found in the PATH when starting Emacs.
 
 You can also define your own keymap for `ocp-annot-mode`:
-===================================
+```
 (setq ocp-annot-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-t") 'ocp-annot-print-info-at-point)
@@ -51,7 +53,7 @@ You can also define your own keymap for `ocp-annot-mode`:
     (define-key map (kbd "C-c C-u") 'ocp-annot-find-ident-at-point)
     (define-key map (kbd "C-c C-o") 'ocp-annot-local-occur-at-point)
     map))
-===================================
+```
 
 
 ## Usage
@@ -83,21 +85,21 @@ JSON results.
 ### Emacs mode
 
 The following functions are available:
-* ocp-annot-mode: toggle `ocp-annot` minor mode
-* ocp-annot-print-info-at-point (C-c C-t): print type of expression in
+* `ocp-annot-mode`: toggle `ocp-annot` minor mode
+* `ocp-annot-print-info-at-point` (`C-c C-t`): print type of expression in
     mini-buffer. Repeat for enclosing expressions
-* ocp-annot-print-info-at-point-and-copy: print type of expressions and
+* `ocp-annot-print-info-at-point-and-copy`: print type of expressions and
     copy it in clipboard
-* ocp-annot-jump-to-definition-at-point (C-c ;): jump to the definition of
+* `ocp-annot-jump-to-definition-at-point` (`C-c ;`): jump to the definition of
     the identifier under point
-* ocp-annot-jump-backward: after jumping, jump backward
-* ocp-annot-jump-to-definition-at-point-other-window: jump to the definition
+* `ocp-annot-jump-backward`: after jumping, jump backward
+* `ocp-annot-jump-to-definition-at-point-other-window`: jump to the definition
     of the identifier, by opening a new window
-* ocp-annot-find-alternate-file (C-C C-a): find the file defining the
+* `ocp-annot-find-alternate-file` (`C-C C-a`): find the file defining the
     (module/long) identifier under point
-* ocp-annot-find-ident-at-point (C-c C-u): display occurrences of the 
+* `ocp-annot-find-ident-at-point` (`C-c C-u`): display occurrences of the 
     identifier at point in the current project
-* ocp-annot-local-occur-at-point (C-c C-o): display _exact_ occurrences
+* `ocp-annot-local-occur-at-point` (`C-c C-o`): display _exact_ occurrences
     of the identifier at point in the same file
 
 ## Watch mode
