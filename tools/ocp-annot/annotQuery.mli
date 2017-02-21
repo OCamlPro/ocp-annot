@@ -29,7 +29,9 @@ val query_jump_long_ident : TYPES.config -> string -> unit
 val query_alternate_file : TYPES.config -> string -> unit
 val query_file_long_ident : TYPES.config -> string -> unit
 val query_uses_long_ident : TYPES.config -> string -> unit
-val query_occurrences_long_ident : TYPES.config -> string -> unit
+val query_occur_long_ident : TYPES.config -> string -> unit
+val query_local_uses_pos : TYPES.config -> string -> unit
+val query_local_occur_pos : TYPES.config -> string -> unit
 
 val output_config : unit -> unit
 

@@ -48,6 +48,7 @@ You can also define your own keymap for `ocp-annot-mode`:
     (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point)
     (define-key map (kbd "C-c C-a") 'ocp-annot-find-alternate-file)
     (define-key map (kbd "C-c C-m") 'ocp-annot-find-file-symbol-at-point)
+    (define-key map (kbd "C-c C-u") 'ocp-annot-find-occurrences-at-point)
     map))
 ===================================
 

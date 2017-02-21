@@ -53,16 +53,10 @@
 ;;
 ;;
 ;;
-;;     Formatting positions as FILE:POS
+;;     Finding symbol at point
 ;;
 ;;
 ;;
-
-(defun ocp-annot-location-at-point ()
-  "Location in FILE:POS format of point"
-  (format "%s:%d" (buffer-file-name)
-          (ocp-annot-bufferpos-to-filepos (point))))
-
 
 (defun ocp-annot-bounds-of-symbol-at-point ()
   "Matches the fully qualified identifier at point, eg [M1.M2.someval] but
@@ -88,9 +82,7 @@
 ;;
 ;;
 
-;; ocamlspot.el uses a different computation, maybe we should try the same one
-;; if we find a performance problem
-(defun ocp-annot-location2-at-point ()
+(defun ocp-annot-location-at-point ()
   "Location in FILE,LINE,LINEPOS format of point"
   (let*(
         (line (count-lines (point-min) (min (1+ (point)) (point-max))))
@@ -258,12 +250,12 @@
 
 (defun ocp-annot-print-info-at-point ()
   (interactive nil)
-  (ocp-annot-print-info (ocp-annot-location2-at-point))
+  (ocp-annot-print-info (ocp-annot-location-at-point))
 )
 
 (defun ocp-annot-print-info-at-point-and-copy ()
   (interactive nil)
-  (ocp-annot-print-info (ocp-annot-location2-at-point) t)
+  (ocp-annot-print-info (ocp-annot-location-at-point) t)
 )
 
 ;;
@@ -400,14 +392,14 @@
          )
     (if file (find-file file)))
   )
-      
+
 (defun ocp-annot-find-occurrences-at-point()
   (interactive)
   (let* (
          (file buffer-file-name)
          (lident (ocp-annot-symbol-at-point))
          (compile-command
-          (format "%s --query-occurrences-long-ident %s,%s"
+          (format "%s --query-occur-long-ident %s,%s"
                   ocp-annot-path file lident))
          )
     (recompile)

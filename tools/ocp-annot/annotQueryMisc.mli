@@ -19,6 +19,7 @@ val find_by_path :
 
 val query_at_pos :
   string -> (* POSITION *)
+  AnnotParser.TYPES.annot_file *
   (int * AnnotParser.TYPES.location * AnnotParser.TYPES.kind list) list
 
 val iter_idents :

@@ -29,7 +29,8 @@ let query_at_pos file_pos =
     [ file; pos ] ->
       let pos = int_of_string pos in
       let annot_file = (Filename.chop_extension file) ^ ".annot" in
-      let { annot_infos } = AnnotParser.parse_file annot_file in
+      let annot_file = AnnotParser.parse_file annot_file in
+      let { annot_infos } = annot_file in
 
       let rec iter infos locs =
         match locs with
@@ -47,13 +48,14 @@ let query_at_pos file_pos =
               iter infos locs
       in
       let infos = iter [] annot_infos in
-      List.sort Pervasives.compare infos
+      annot_file, List.sort Pervasives.compare infos
 
   | [pos_file; pos_line; pos_linepos ] ->
     let pos_line = int_of_string pos_line in
     let pos_linepos = int_of_string pos_linepos in
     let annot_file = (Filename.chop_extension pos_file) ^ ".annot" in
-    let { annot_infos; annot_basenames } = AnnotParser.parse_file annot_file in
+    let annot_file = AnnotParser.parse_file annot_file in
+    let { annot_infos; annot_basenames } = annot_file in
 
     let pos_file =
       let basename = Filename.basename pos_file in
@@ -75,7 +77,7 @@ let query_at_pos file_pos =
           iter infos locs
     in
     let infos = iter [] annot_infos in
-    List.sort Pervasives.compare infos
+    annot_file, List.sort Pervasives.compare infos
 
   | _ -> failwith "wrong argument"
 

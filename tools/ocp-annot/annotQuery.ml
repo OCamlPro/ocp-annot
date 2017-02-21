@@ -31,8 +31,8 @@ open TYPES
 
 let query_info_file_pos c file_pos =
   match AnnotQueryMisc.query_at_pos file_pos with
-  | [] -> failwith "ocp-annot: no info found at file pos"
-  | infos ->
+  | _, [] -> failwith "ocp-annot: no info found at file pos"
+  | _, infos ->
     let rec iter infos =
       match infos with
       | [] -> []
@@ -139,10 +139,10 @@ let find_jump_for_ident annot_file idents =
   in
   iter annot_infos
 
-let query_jump_file_pos c file_pos =
+let find_ident_at_pos c file_pos =
   match AnnotQueryMisc.query_at_pos file_pos with
-  | [] -> failwith "ocp-annot: no info found at pos"
-  |  ( _, loc, infos ) :: _ ->
+  | _, [] -> failwith "ocp-annot: no info found at pos"
+  | annot_file, ( _, loc, infos ) :: _ ->
     let rec iter infos =
       match infos with
       | [] -> failwith "ocp-annot: info contains no reference to definition"
@@ -150,7 +150,13 @@ let query_jump_file_pos c file_pos =
         match info with
         | Type _ -> iter infos
         | Ident ident ->
-          match AnnotParser.parse_ident ident with
+          annot_file, loc, AnnotParser.parse_ident ident
+    in
+    iter infos
+
+let query_jump_file_pos c file_pos =
+  let (_, loc, ident) = find_ident_at_pos c file_pos in
+  let v = match ident with
           | Def _ -> failwith "ocp-annot: info is a definition"
           | IntRef (ident, location) ->
             begin
@@ -170,8 +176,7 @@ let query_jump_file_pos c file_pos =
             ("ident", String path) ::
               AnnotQueryMisc.find_by_path c max_rec find_jump_for_ident path
     in
-    let v = Record (iter infos) in
-    Printf.printf "%s\n%!" (!AnnotMisc.output_function v)
+    Printf.printf "%s\n%!" (!AnnotMisc.output_function (Record v))
 
 let query_jump_long_ident c path =
   let v = Record (
@@ -305,20 +310,7 @@ let find_uses_long_ident c path =
   );
   path, !uses
 
-let query_uses_long_ident c path =
-  let path, uses = find_uses_long_ident c path in
-  let uses = List.map (fun (kind, ml_file, pos) ->
-    List [String ml_file; AnnotMisc.pos_of_pos pos]
-  ) uses in
-  let v = Record
-    [ "ident", String path;
-      "uses", List uses;
-    ]
-  in
-  Printf.printf "%s\n%!" (!AnnotMisc.output_function v)
-
-let query_occurrences_long_ident c path =
-  let path, uses = find_uses_long_ident c path in
+let print_list_of_uses path uses =
   List.iter (fun (kind, ml_file, pos) ->
     let line = pos.pos_line in
     let linepos = pos.pos_linepos in
@@ -333,6 +325,52 @@ let query_occurrences_long_ident c path =
       ) path
   ) uses;
   Printf.printf "%!"
+
+let output_list_of_uses path uses =
+  let uses = List.map (fun (kind, ml_file, pos) ->
+    List [String ml_file; AnnotMisc.pos_of_pos pos]
+  ) uses in
+  let v = Record
+    [ "ident", String path;
+      "uses", List uses;
+    ]
+  in
+  Printf.printf "%s\n%!" (!AnnotMisc.output_function v)
+
+let query_uses_long_ident c path =
+  let path, uses = find_uses_long_ident c path in
+  output_list_of_uses path uses
+
+let query_occur_long_ident c path =
+  let path, uses = find_uses_long_ident c path in
+  print_list_of_uses path uses
+
+let find_uses_lident annot_file lident = []
+let find_uses_by_def annot_file ident def_loc = []
+
+let query_local_uses_pos c file_pos =
+  let (annot_file, loc, ident) = find_ident_at_pos c file_pos in
+  let path, uses = match ident with
+    | ExtRef lident ->
+      lident, find_uses_lident annot_file lident
+    | Def (ident, _scope) ->
+      ident, find_uses_by_def annot_file ident loc
+    | IntRef (ident, def_loc) ->
+      ident, find_uses_by_def annot_file ident def_loc
+  in
+  output_list_of_uses path uses
+
+let query_local_occur_pos c file_pos =
+  let (annot_file, loc, ident) = find_ident_at_pos c file_pos in
+  let path, uses = match ident with
+    | ExtRef lident ->
+      lident, find_uses_lident annot_file lident
+    | Def (ident, _scope) ->
+      ident, find_uses_by_def annot_file ident loc
+    | IntRef (ident, def_loc) ->
+      ident, find_uses_by_def annot_file ident def_loc
+  in
+  print_list_of_uses path uses
 
 (************************************************************************)
 (* Query alternate file (interface/implementation)                      *)
