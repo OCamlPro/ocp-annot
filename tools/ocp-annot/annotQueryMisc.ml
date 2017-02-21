@@ -29,7 +29,8 @@ let query_at_pos file_pos =
     [ file; pos ] ->
       let pos = int_of_string pos in
       let annot_file = (Filename.chop_extension file) ^ ".annot" in
-      let { annot_infos } = AnnotParser.parse_file annot_file in
+      let annot_file = AnnotParser.parse_file annot_file in
+      let { annot_infos } = annot_file in
 
       let rec iter infos locs =
         match locs with
@@ -47,18 +48,19 @@ let query_at_pos file_pos =
               iter infos locs
       in
       let infos = iter [] annot_infos in
-      List.sort Pervasives.compare infos
+      annot_file, List.sort Pervasives.compare infos
 
   | [pos_file; pos_line; pos_linepos ] ->
     let pos_line = int_of_string pos_line in
     let pos_linepos = int_of_string pos_linepos in
     let annot_file = (Filename.chop_extension pos_file) ^ ".annot" in
-    let { annot_infos; annot_basenames } = AnnotParser.parse_file annot_file in
+    let annot_file = AnnotParser.parse_file annot_file in
+    let { annot_infos; annot_basenames } = annot_file in
 
     let pos_file =
       let basename = Filename.basename pos_file in
       try
-        StringMap.find basename annot_basenames
+        StringMap.find basename !annot_basenames
       with Not_found ->
         Printf.kprintf failwith "ocp-annot: annotations not for %s" pos_file
     in
@@ -75,7 +77,7 @@ let query_at_pos file_pos =
           iter infos locs
     in
     let infos = iter [] annot_infos in
-    List.sort Pervasives.compare infos
+    annot_file, List.sort Pervasives.compare infos
 
   | _ -> failwith "wrong argument"
 
@@ -153,12 +155,12 @@ let find_by_path c max_rec f path =
   iter "." 0
 
 let iter_idents annot_file f =
-  let { annot_infos } = AnnotParser.parse_file annot_file in
+  let annot_file = AnnotParser.parse_file annot_file in
   List.iter (fun (loc, infos) ->
     List.iter (function
     | Type _ -> ()
     | Ident ident ->
-      let ident = AnnotParser.parse_ident ident in
+      let ident = AnnotParser.parse_ident annot_file ident in
       f loc ident
     ) infos
-  ) annot_infos
+  ) annot_file.annot_infos

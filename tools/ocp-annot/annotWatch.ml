@@ -239,7 +239,7 @@ let check_cmt c read_cmt includes cmt_file =
                 let annot_time = file_mtime annot_file in
                 if annot_time < ml_time then
                   annot_files := annot_file :: !annot_files
-          ) annot_basenames;
+          ) !annot_basenames;
           !annot_files in
         if not c.quiet then Printf.eprintf " UPDATED\n%!";
         match annot_files with

@@ -45,7 +45,8 @@ module TYPES = struct
   | IntRef of string * location (* definition *)
 
   type annot_file = {
-    annot_basenames : file StringMap.t;
+    annot_filename : string;
+    annot_basenames : file StringMap.t ref;
     annot_infos : (location * kind list) list;
   }
 
@@ -230,9 +231,9 @@ let parse_ident fileset line =
   | _ -> error "parse_reference" line
 
 
-let parse_file filename =
+let parse_file annot_filename =
   let fileset = ref StringMap.empty in
-  let lines = FileLines.read_file filename in
+  let lines = FileLines.read_file annot_filename in
   let rec iter lines locations =
     match lines with
       [] | [ "" ] -> locations
@@ -263,8 +264,8 @@ let parse_file filename =
       iter3 lines locations location infos (line :: prev_lines)
   in
   let annot_infos = iter lines [] in
-  let annot_basenames = !fileset in
-  { annot_infos; annot_basenames }
+  let annot_basenames = fileset in
+  { annot_filename; annot_infos; annot_basenames }
 
-let parse_ident ident =
-  parse_ident (ref StringMap.empty) ident
+let parse_ident annot_file ident =
+  parse_ident annot_file.annot_basenames ident

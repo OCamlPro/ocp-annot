@@ -81,9 +81,17 @@ let arg_list_query = [
   Arg.String (set_query_action AnnotQuery.query_uses_long_ident),
   "LIDENT Query uses of LIDENT {action}";
 
-  "--query-occurrences-long-ident",
-  Arg.String (set_query_action AnnotQuery.query_occurrences_long_ident),
+  "--query-occur-long-ident",
+  Arg.String (set_query_action AnnotQuery.query_occur_long_ident),
   "LIDENT Query locations of uses of LIDENT {action}";
+
+  "--query-local-uses-file-pos",
+  Arg.String (set_query_action AnnotQuery.query_local_uses_pos),
+  "POSITION Query uses of ident at POSITION {action}";
+
+  "--query-local-occur-file-pos",
+  Arg.String (set_query_action AnnotQuery.query_local_occur_pos),
+  "POSITION Query locations of uses of ident at POSITION {action}";
 
   "--query-alternate-file",
   Arg.String (set_query_action AnnotQuery.query_alternate_file),

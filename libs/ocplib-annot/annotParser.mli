@@ -45,7 +45,8 @@ module TYPES : sig
   | IntRef of string * location (* location of definition *)
 
   type annot_file = {
-    annot_basenames : file StringMap.t;
+    annot_filename : string;
+    annot_basenames : file StringMap.t ref;
     annot_infos : (location * kind list) list;
   }
 
@@ -81,4 +82,4 @@ val parse_file :  string -> TYPES.annot_file
 (* [parse_ident s] will parse [s] as the single-line following an
    "ident(" line in a .annot file. It is used to handle the string argument
    of the [ident] constructor of the [kind] type. *)
-val parse_ident : string -> TYPES.ident
+val parse_ident : TYPES.annot_file -> string -> TYPES.ident
