@@ -85,21 +85,21 @@ JSON results.
 ### Emacs mode
 
 The following functions are available:
-* ocp-annot-mode: toggle `ocp-annot` minor mode
-* ocp-annot-print-info-at-point (C-c C-t): print type of expression in
+* `ocp-annot-mode`: toggle `ocp-annot` minor mode
+* `ocp-annot-print-info-at-point` (`C-c C-t`): print type of expression in
     mini-buffer. Repeat for enclosing expressions
-* ocp-annot-print-info-at-point-and-copy: print type of expressions and
+* `ocp-annot-print-info-at-point-and-copy`: print type of expressions and
     copy it in clipboard
-* ocp-annot-jump-to-definition-at-point (C-c ;): jump to the definition of
+* `ocp-annot-jump-to-definition-at-point` (`C-c ;`): jump to the definition of
     the identifier under point
-* ocp-annot-jump-backward: after jumping, jump backward
-* ocp-annot-jump-to-definition-at-point-other-window: jump to the definition
+* `ocp-annot-jump-backward`: after jumping, jump backward
+* `ocp-annot-jump-to-definition-at-point-other-window`: jump to the definition
     of the identifier, by opening a new window
-* ocp-annot-find-alternate-file (C-C C-a): find the file defining the
+* `ocp-annot-find-alternate-file` (`C-C C-a`): find the file defining the
     (module/long) identifier under point
-* ocp-annot-find-ident-at-point (C-c C-u): display occurrences of the 
+* `ocp-annot-find-ident-at-point` (`C-c C-u`): display occurrences of the 
     identifier at point in the current project
-* ocp-annot-local-occur-at-point (C-c C-o): display _exact_ occurrences
+* `ocp-annot-local-occur-at-point` (`C-c C-o`): display _exact_ occurrences
     of the identifier at point in the same file
 
 ## Watch mode
