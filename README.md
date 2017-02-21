@@ -19,19 +19,21 @@ so it should be installed in the current switch, used to compile
 ### Emacs configuration
 
 Edit your .emacs and add the following:
-==================================
+
+```
 (let*
     ((ocp-annot-binary (executable-find "ocp-annot")))
   (if ocp-annot-binary
     (with-temp-buffer (insert (shell-command-to-string
      "ocp-annot --emacs --output-config")) (eval-buffer))))
-==================================
+```
 
 Depending on your OCaml mode, pick one of the two following lines:
-==================================
+
+```
 (add-hook 'tuareg-mode-hook 'ocp-annot-mode t)
 (add-hook 'caml-mode-hook 'ocp-annot-mode t)
-===================================
+```
 
 You might also want to replace in the previous lines 'ocp-annot-mode
   with one of the following:
@@ -41,7 +43,7 @@ You might also want to replace in the previous lines 'ocp-annot-mode
     `ocamlspot` is not found in the PATH when starting Emacs.
 
 You can also define your own keymap for `ocp-annot-mode`:
-===================================
+```
 (setq ocp-annot-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-t") 'ocp-annot-print-info-at-point)
@@ -51,7 +53,7 @@ You can also define your own keymap for `ocp-annot-mode`:
     (define-key map (kbd "C-c C-u") 'ocp-annot-find-ident-at-point)
     (define-key map (kbd "C-c C-o") 'ocp-annot-local-occur-at-point)
     map))
-===================================
+```
 
 
 ## Usage
