@@ -1,0 +1,5 @@
+
+Some other bindings on Emacs:
+
+M-; : on an empty line, create a comment and put the cursor inside
+      in a line, create a comment at the end of line, and put the cursor inside
