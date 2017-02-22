@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-begin program "ocp-annot"
+begin library "ocplib-tool-annot"
     files = [
      "annotFiles.ml" ( file2string = [
                   "files/ocp-annot.el";
@@ -23,11 +23,20 @@ begin program "ocp-annot"
       "annotQuery.ml";
 
       "annotWatch.ml";
+    ]
+    requires = [
+    "ocplib-compiler-annot" ;
+    "ocplib-lang";
+    ]
+end
 
+begin program "ocp-annot"
+    files = [
       "annotMain.ml";
     ]
     requires = [
     "ocplib-compiler-annot" ;
+    "ocplib-tool-annot" ;
     "ocplib-lang";
     ]
 end

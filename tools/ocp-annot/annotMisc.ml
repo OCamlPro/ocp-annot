@@ -31,12 +31,13 @@ let is_directory file =
 let readdir dir =
   try Sys.readdir dir with _ -> [||]
 
-let rec iter_files dir f =
+let rec iter_files ?(skip=StringSet.empty) dir f =
   let files = readdir dir in
   Array.iter (fun file ->
     let filename = Filename.concat dir file in
     if is_directory filename then
-      iter_files filename f
+      (if not (StringSet.mem file skip) then
+          iter_files filename f)
     else
       f filename
   ) files
@@ -94,3 +95,35 @@ let start_time = Unix.gettimeofday ()
 let check_time c =
   let time = Unix.gettimeofday () in
   if time -. start_time > c.timeout then failwith "ocp-annot: timeout"
+
+let with_log f =
+  let pid = Unix.getpid () in
+  let oc =
+    open_out_gen [ Open_creat; Open_append ] 0o644 "/tmp/ocp-annot.log" in
+  let printer s = Printf.fprintf oc "%d: %s\n" pid s in
+  f printer;
+  close_out oc
+
+let log_exn exn  =
+  let bt = Printexc.get_backtrace () in
+  with_log (fun printer ->
+    Printf.kprintf printer "dir: %S" (Sys.getcwd ());
+    Printf.kprintf printer
+      "'%s'" (String.concat "' '"
+                  (Array.to_list Sys.argv));
+    Printf.kprintf printer
+      "Error: exception %s" (Printexc.to_string exn);
+    if bt <> "" then
+      Printf.kprintf printer "Backtrace:\n%s\n%!" bt
+  )
+
+let skip_dirs =
+  StringSet.of_list [
+    ".git"; "_obuild"; "_build"; ".svn";
+  ]
+
+(*
+# Local Variables:
+# compile-command: "make -C ../.."
+# End:
+*)

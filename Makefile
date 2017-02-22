@@ -9,14 +9,14 @@ include autoconf/Makefile.config
 # Always build ocp-annot, build ocp-genannot only if ocaml_cmt is not
 # provided by the current OCaml distribution.
 
-all:
+all: _obuild
 	ocp-build ocp-annot
 	if test -f $(bindir)/ocaml_cmt; then :; else \
 	   ocp-build ocp-genannot; \
 	fi
 
 install:
-	ocp-build install ocp-annot
+	ocp-build install ocp-annot ocplib-compiler-annot ocplib-tool-annot
 	if test -f _obuild/ocp-genannot/ocp-genannot.asm; then \
 	  cp _obuild/ocp-genannot/ocp-genannot.asm \
 	    $(bindir)/ocp-genannot; \

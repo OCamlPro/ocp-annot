@@ -174,7 +174,7 @@ AC_SUBST(OCAMLDOC)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAML_USE_BINANNOT)
-AC_CONFIG_FILES(Makefile.config config.ocpgen ocaml-config.h)
+AC_CONFIG_FILES(Makefile.config config.ocpgen config.ocp2gen ocaml-config.h)
 AC_OUTPUT
 
 echo

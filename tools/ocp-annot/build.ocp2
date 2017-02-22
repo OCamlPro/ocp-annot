@@ -23,11 +23,21 @@ begin
       "annotQuery.ml";
 
       "annotWatch.ml";
+  ];
+  ocaml.requires = [
+    "ocplib-compiler-annot" ;
+    "ocplib-lang";
+  ];
+  OCaml.library("ocplib-tool-annot", ocaml);
+end
 
+begin
+  ocaml.files = [
       "annotMain.ml";
   ];
   ocaml.requires = [
     "ocplib-compiler-annot" ;
+    "ocplib-tool-annot" ;
     "ocplib-lang";
   ];
   OCaml.program("ocp-annot", ocaml);

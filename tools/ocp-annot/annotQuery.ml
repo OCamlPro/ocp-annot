@@ -31,8 +31,8 @@ open TYPES
 
 let query_info_file_pos c file_pos =
   match AnnotQueryMisc.query_at_pos file_pos with
-  | [] -> failwith "ocp-annot: no info found at file pos"
-  | infos ->
+  | _, [] -> failwith "ocp-annot: no info found at file pos"
+  | annot_file, infos ->
     let rec iter infos =
       match infos with
       | [] -> []
@@ -70,7 +70,7 @@ let query_info_file_pos c file_pos =
               "type", String (String.concat "\n" typ)
             | Ident ident ->
               "ident", Record (
-                match AnnotParser.parse_ident ident with
+                match AnnotParser.parse_ident annot_file ident with
                 | Def (ident, loc) ->
                   [ "kind", String "def";
                     "ident", String ident ] @
@@ -101,8 +101,8 @@ let query_info_file_pos c file_pos =
 (************************************************************************)
 (* Query info to perform a jump to the identifier location              *)
 
-let find_jump_for_ident annot_file idents =
-  let { annot_infos } = AnnotParser.parse_file annot_file in
+let find_jump_for_ident annot_filename idents =
+  let annot_file = AnnotParser.parse_file annot_filename in
   let rec iter locs =
     match locs with
     | [] ->
@@ -116,7 +116,7 @@ let find_jump_for_ident annot_file idents =
     | [] -> iter locs
     | Type _ :: infos -> iter_infos loc infos locs
     | Ident ident :: infos ->
-      match AnnotParser.parse_ident ident with
+      match AnnotParser.parse_ident annot_file ident with
       | IntRef _
       | ExtRef _ -> iter_infos loc infos locs
       | Def (ident, scope) ->
@@ -127,7 +127,7 @@ let find_jump_for_ident annot_file idents =
           | Unbounded loc
           | Uncomparable (loc, _) ->
             let ml_file =
-              Filename.concat (Filename.dirname annot_file)
+              Filename.concat (Filename.dirname annot_filename)
                 loc.pos_file.file_basename in
             [
               "file", String ml_file;
@@ -137,12 +137,12 @@ let find_jump_for_ident annot_file idents =
           end
         | _ -> iter_infos loc infos locs
   in
-  iter annot_infos
+  iter annot_file.annot_infos
 
-let query_jump_file_pos c file_pos =
+let find_ident_at_pos c file_pos =
   match AnnotQueryMisc.query_at_pos file_pos with
-  | [] -> failwith "ocp-annot: no info found at pos"
-  |  ( _, loc, infos ) :: _ ->
+  | _, [] -> failwith "ocp-annot: no info found at pos"
+  | annot_file, ( _, loc, infos ) :: _ ->
     let rec iter infos =
       match infos with
       | [] -> failwith "ocp-annot: info contains no reference to definition"
@@ -150,7 +150,13 @@ let query_jump_file_pos c file_pos =
         match info with
         | Type _ -> iter infos
         | Ident ident ->
-          match AnnotParser.parse_ident ident with
+          annot_file, loc, AnnotParser.parse_ident annot_file ident
+    in
+    iter infos
+
+let query_jump_file_pos c file_pos =
+  let (_, loc, ident) = find_ident_at_pos c file_pos in
+  let v = match ident with
           | Def _ -> failwith "ocp-annot: info is a definition"
           | IntRef (ident, location) ->
             begin
@@ -170,8 +176,7 @@ let query_jump_file_pos c file_pos =
             ("ident", String path) ::
               AnnotQueryMisc.find_by_path c max_rec find_jump_for_ident path
     in
-    let v = Record (iter infos) in
-    Printf.printf "%s\n%!" (!AnnotMisc.output_function v)
+    Printf.printf "%s\n%!" (!AnnotMisc.output_function (Record v))
 
 let query_jump_long_ident c path =
   let v = Record (
@@ -215,29 +220,192 @@ let query_file_long_ident c path =
   in
   Printf.printf "%s\n%!" (!AnnotMisc.output_function v)
 
-let query_local_uses_long_ident c path =
+(* Try to find an absolute filename corresponding to an existing file
+   for the location of the file *)
+let loc_file ?project_dir annot_file loc =
+  let ml_file = AnnotParser.LOC.file loc in
+  if not (Filename.is_relative ml_file) then
+    ml_file
+  else
+  let annot_dirname = Filename.dirname annot_file in
+  let ml_basename = Filename.basename ml_file in
+  let ml_filename = Filename.concat annot_dirname ml_basename in
+  if Sys.file_exists ml_filename then
+    ml_filename
+  else
+    let ml_dirname = match project_dir with
+        None -> Sys.getcwd ()
+      | Some dir -> dir
+    in
+    let ml_filename = Filename.concat ml_dirname ml_basename in
+    if Sys.file_exists ml_filename then
+      ml_filename
+    else
+      ml_file
+
+let lident_of_string path =
+  let lident_of_file_path file path =
+    match AnnotQueryMisc.split_lident path with
+    | _,[] ->
+        let modname =
+          String.capitalize
+            (Filename.chop_extension
+               (Filename.basename file)) in
+        modname, [path]
+    | modname, idents ->
+      modname, idents
+  in
+  match OcpString.split path ',' with
+  | [_] -> AnnotQueryMisc.split_lident path
+  | [file; path] -> lident_of_file_path file path
+  | _ -> Printf.kprintf failwith "ocp-annot: cannot extract lident from %S" path
+
+let kind_of_kind = function
+  | Def _ -> "def"
+  | ExtRef _ -> "ext_ref"
+  | IntRef _ -> "int_ref"
+
+let find_uses_long_ident c path =
+  let modname, idents = lident_of_string path in
+  let path = String.concat "." (modname :: idents) in
+  let modname_annot = modname ^ ".annot" in
   let uses = ref [] in
-  AnnotMisc.iter_files "." (fun file ->
-    if Filename.check_suffix file ".annot" then
+  let project_dir = match AnnotMisc.find_project_root () with
+    | None -> Sys.getcwd ()
+    | Some (dir,_level) -> dir
+  in
+  AnnotMisc.iter_files ~skip:AnnotMisc.skip_dirs
+    project_dir (fun file ->
+      if Filename.check_suffix file ".annot" then
+        if String.capitalize (Filename.basename file) = modname_annot then
+          let local_ident = OcpList.last idents in
+          AnnotQueryMisc.iter_idents file
+            (fun loc kind ->
+              match kind with
+              | Def (ident,_)
+              | IntRef (ident,_) when ident = local_ident ->
+                begin
+                  match AnnotParser.LOC.begin_pos loc with
+                  | None -> ()
+                  | Some pos ->
+                    let ml_file = loc_file ~project_dir file loc in
+                    uses := (kind_of_kind kind, ml_file,  pos) :: !uses
+                end
+              | _ -> ()
+            )
+        else
       AnnotQueryMisc.iter_idents file
-        (fun loc ident ->
-          match ident with
+        (fun loc kind ->
+          match kind with
           | ExtRef ident when ident = path ->
             begin
               match AnnotParser.LOC.begin_pos loc with
               | Some pos ->
-                uses := (List [String (AnnotParser.LOC.file loc);
-                               AnnotMisc.pos_of_pos pos]) :: !uses
+                let ml_file = loc_file ~project_dir file loc in
+                uses := (kind_of_kind kind, ml_file, pos) :: !uses
               | None -> ()
             end
           | _ -> ()
         )
   );
+  path, !uses
+
+let print_list_of_uses path uses =
+  List.iter (fun (kind, ml_file, pos) ->
+    let line = pos.pos_line in
+    let linepos = pos.pos_linepos in
+    Printf.printf "File %S, line %d, characters %d-%d:\n"
+      ml_file line linepos linepos;
+    Printf.printf "%s occurrence of %S\n%!"
+      (match kind with
+        "def" -> "Definition"
+      | "int_ref" -> "Internal"
+      | "ext_ref" -> "External"
+      | _ -> kind
+      ) path
+  ) uses;
+  Printf.printf "%!"
+
+let output_list_of_uses path uses =
+  let uses = List.map (fun (kind, ml_file, pos) ->
+    List [String ml_file; AnnotMisc.pos_of_pos pos]
+  ) uses in
   let v = Record
     [ "ident", String path;
-      "uses", List !uses ]
+      "uses", List uses;
+    ]
   in
   Printf.printf "%s\n%!" (!AnnotMisc.output_function v)
+
+let query_uses_long_ident c path =
+  let path, uses = find_uses_long_ident c path in
+  output_list_of_uses path uses
+
+let query_occur_long_ident c path =
+  let path, uses = find_uses_long_ident c path in
+  print_list_of_uses path uses
+
+let find_uses_lident annot_file lident = []
+let find_uses_by_def annot_file id def_loc =
+  let project_dir = match AnnotMisc.find_project_root () with
+    | None -> Sys.getcwd ()
+    | Some (dir,_level) -> dir
+  in
+  let uses = ref [ ] in (* kind, string, position *)
+  let is_def_loc kind loc =
+    match AnnotParser.LOC.begin_pos loc, AnnotParser.LOC.end_pos loc with
+    | Some begin_pos, Some end_pos ->
+      let left = AnnotParser.LOC.includes def_loc begin_pos in
+      let right = AnnotParser.LOC.includes def_loc end_pos in
+      left && right
+    | _ -> false
+  in
+  let add_use kind loc use_loc ident =
+    if is_def_loc kind loc && ident = id then
+      match AnnotParser.LOC.begin_pos use_loc with
+      | None -> ()
+      | Some pos ->
+        let ml_file = loc_file ~project_dir annot_file.annot_filename use_loc in
+        uses := (kind, ml_file, pos) :: !uses
+  in
+  List.iter (fun (loc, infos) ->
+    List.iter (fun info ->
+      match info with
+      | Type _ -> ()
+      | Ident ident ->
+        let ident = AnnotParser.parse_ident annot_file ident in
+        match ident with
+        | IntRef (ident, def_loc) ->
+          add_use "int_ref" def_loc loc ident
+        | Def (ident, scope) -> add_use "def" loc loc ident
+        | _ -> ()
+    ) infos
+  ) annot_file.annot_infos;
+  !uses
+
+let query_local_uses_pos c file_pos =
+  let (annot_file, loc, ident) = find_ident_at_pos c file_pos in
+  let path, uses = match ident with
+    | ExtRef lident ->
+      lident, find_uses_lident annot_file lident
+    | Def (ident, _scope) ->
+      ident, find_uses_by_def annot_file ident loc
+    | IntRef (ident, def_loc) ->
+      ident, find_uses_by_def annot_file ident def_loc
+  in
+  output_list_of_uses path uses
+
+let query_local_occur_pos c file_pos =
+  let (annot_file, loc, ident) = find_ident_at_pos c file_pos in
+  let path, uses = match ident with
+    | ExtRef lident ->
+      lident, find_uses_lident annot_file lident
+    | Def (ident, _scope) ->
+      ident, find_uses_by_def annot_file ident loc
+    | IntRef (ident, def_loc) ->
+      ident, find_uses_by_def annot_file ident def_loc
+  in
+  print_list_of_uses path uses
 
 (************************************************************************)
 (* Query alternate file (interface/implementation)                      *)
@@ -296,18 +464,7 @@ let wrap c f arg =
     end;
     f c arg
   with exn ->
-    let bt = Printexc.get_backtrace () in
-    let oc =
-      open_out_gen [ Open_creat; Open_append ] 0o644 "/tmp/ocp-annot.log" in
-    Printf.fprintf oc
-      "'%s'\n" (String.concat "' '"
-                  (Array.to_list Sys.argv));
-    Printf.fprintf oc "dir: %S\n" (Sys.getcwd ());
-    Printf.fprintf oc
-      "Error: exception %s\n" (Printexc.to_string exn);
-    if bt <> "" then
-      Printf.fprintf oc "Backtrace:\n%s\n%!" bt;
-    close_out oc;
+    AnnotMisc.log_exn exn;
     let infos = [ "error",
                   String (Printf.sprintf "Error: exception %s"
                             (Printexc.to_string exn)) ] in

@@ -21,6 +21,8 @@
     (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point)
     (define-key map (kbd "C-c C-a") 'ocp-annot-find-alternate-file)
     (define-key map (kbd "C-c C-m") 'ocp-annot-find-file-symbol-at-point)
+    (define-key map (kbd "C-c C-u") 'ocp-annot-find-ident-at-point)
+    (define-key map (kbd "C-c C-o") 'ocp-annot-local-occur-at-point)
 ;    (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point-other-window)
 ;    (define-key map (kbd "C-c :") 'ocp-annot-jump-to-sig-at-point-other-window)
 ;    (define-key map (kbd "C-c C-;") 'ocp-annot-jump-to-definition-at-point)
@@ -52,16 +54,10 @@
 ;;
 ;;
 ;;
-;;     Formatting positions as FILE:POS
+;;     Finding symbol at point
 ;;
 ;;
 ;;
-
-(defun ocp-annot-location-at-point ()
-  "Location in FILE:POS format of point"
-  (format "%s:%d" (buffer-file-name)
-          (ocp-annot-bufferpos-to-filepos (point))))
-
 
 (defun ocp-annot-bounds-of-symbol-at-point ()
   "Matches the fully qualified identifier at point, eg [M1.M2.someval] but
@@ -87,17 +83,15 @@
 ;;
 ;;
 
-;; ocamlspot.el uses a different computation, maybe we should try the same one
-;; if we find a performance problem
-(defun ocp-annot-location2-at-point ()
-  "Location in FILE:LINE:LINEPOS format of point"
+(defun ocp-annot-location-at-point ()
+  "Location in FILE,LINE,LINEPOS format of point"
   (let*(
         (line (count-lines (point-min) (min (1+ (point)) (point-max))))
         (line-pos
          (- (ocp-annot-bufferpos-to-filepos (point))
             (ocp-annot-bufferpos-to-filepos (line-beginning-position))))
       )
-    (format "%s:%d:%d"
+    (format "%s,%d,%d"
             (buffer-file-name) line line-pos)))
 
 ;; Some code taken from ocamlspot.el (by Jun Furuse)
@@ -257,12 +251,12 @@
 
 (defun ocp-annot-print-info-at-point ()
   (interactive nil)
-  (ocp-annot-print-info (ocp-annot-location2-at-point))
+  (ocp-annot-print-info (ocp-annot-location-at-point))
 )
 
 (defun ocp-annot-print-info-at-point-and-copy ()
   (interactive nil)
-  (ocp-annot-print-info (ocp-annot-location2-at-point) t)
+  (ocp-annot-print-info (ocp-annot-location-at-point) t)
 )
 
 ;;
@@ -399,4 +393,26 @@
          )
     (if file (find-file file)))
   )
-      
+
+(defun ocp-annot-find-ident-at-point()
+  (interactive)
+  (let* (
+         (file buffer-file-name)
+         (lident (ocp-annot-symbol-at-point))
+         (compile-command
+          (format "%s --query-occur-long-ident %s,%s"
+                  ocp-annot-path file lident))
+         )
+    (recompile)
+  ))
+
+(defun ocp-annot-local-occur-at-point()
+  (interactive)
+  (let* (
+         (file-pos (ocp-annot-location-at-point))
+         (compile-command
+          (format "%s --query-local-occur-file-pos %s"
+                  ocp-annot-path file-pos))
+         )
+    (recompile)
+  ))

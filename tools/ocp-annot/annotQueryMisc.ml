@@ -14,21 +14,23 @@ open StringCompat
 open AnnotParser.TYPES
 open AnnotQueryTypes
 
-let skip_dirs =
-  StringSet.of_list [
-    ".git"; "_obuild"; "_build"; ".svn";
-  ]
-
 (************************************************************************)
 (* [query_pos "FILE:POS"] returns the information at FILE:POS sorted by
    the size of the expression *)
 
 let query_at_pos file_pos =
-  match OcpString.split file_pos ':' with
+  let split =
+    let split = OcpString.split file_pos ',' in
+    match split with
+    | _ :: _ -> split
+    | [] -> OcpString.split file_pos ':'
+  in
+  match split with
     [ file; pos ] ->
       let pos = int_of_string pos in
       let annot_file = (Filename.chop_extension file) ^ ".annot" in
-      let { annot_infos } = AnnotParser.parse_file annot_file in
+      let annot_file = AnnotParser.parse_file annot_file in
+      let { annot_infos } = annot_file in
 
       let rec iter infos locs =
         match locs with
@@ -46,18 +48,19 @@ let query_at_pos file_pos =
               iter infos locs
       in
       let infos = iter [] annot_infos in
-      List.sort Pervasives.compare infos
+      annot_file, List.sort Pervasives.compare infos
 
   | [pos_file; pos_line; pos_linepos ] ->
     let pos_line = int_of_string pos_line in
     let pos_linepos = int_of_string pos_linepos in
     let annot_file = (Filename.chop_extension pos_file) ^ ".annot" in
-    let { annot_infos; annot_basenames } = AnnotParser.parse_file annot_file in
+    let annot_file = AnnotParser.parse_file annot_file in
+    let { annot_infos; annot_basenames } = annot_file in
 
     let pos_file =
       let basename = Filename.basename pos_file in
       try
-        StringMap.find basename annot_basenames
+        StringMap.find basename !annot_basenames
       with Not_found ->
         Printf.kprintf failwith "ocp-annot: annotations not for %s" pos_file
     in
@@ -74,12 +77,18 @@ let query_at_pos file_pos =
           iter infos locs
     in
     let infos = iter [] annot_infos in
-    List.sort Pervasives.compare infos
+    annot_file, List.sort Pervasives.compare infos
 
   | _ -> failwith "wrong argument"
 
 (************************************************************************)
 (* Find the .annot containg a longident definition                      *)
+
+let split_lident path =
+  let prefix, _ = OcpString.cut_at path '(' in
+  match OcpString.split prefix '.' with
+  | [] -> Printf.kprintf failwith "ocp-annot: split_lident %S" path
+  | modname :: idents -> modname, idents
 
 (* [find_by_path max_rec f path] From current directory, perform a
    search in the project for the .annot containing the module on top of
@@ -89,73 +98,69 @@ let query_at_pos file_pos =
 *)
 
 let find_by_path c max_rec f path =
-  let path, _ = OcpString.cut_at path '(' in
-  let path = OcpString.split path '.' in
-  match path with
-  | [] -> assert false
-  | modname :: idents ->
-    let modname_annot = modname ^ ".annot" in
-    let rec iter dir level =
-      if level > max_rec then
-        Printf.kprintf failwith
-          "ocp-annot: file matching %S not found" modname
-      else
-        let files = AnnotMisc.readdir dir in
-        let files = Array.to_list files in
-        iter_files dir level files
-
-    and iter_files dir level files =
-      match files with
-        [] -> iter (Filename.concat dir "..") (level+1)
-      | file :: files ->
-        let filename = Filename.concat dir file in
-        if String.capitalize file = modname_annot then
-          f filename idents
-        else
-          if not (StringSet.mem file skip_dirs) &&
-            AnnotMisc.is_directory filename then
-            iter_sub (dir,level,files) [] filename
-          else
-            iter_files dir level files
-
-    and iter_sub dlf stack dir =
+  let modname, idents = split_lident path in
+  let modname_annot = modname ^ ".annot" in
+  let rec iter dir level =
+    if level > max_rec then
+      Printf.kprintf failwith
+        "ocp-annot: file matching %S not found" modname
+    else
       let files = AnnotMisc.readdir dir in
       let files = Array.to_list files in
-      iter_subfiles dlf stack dir files
+      iter_files dir level files
 
-    and iter_subfiles dlf stack dir files =
-      match files with
-        [] ->
-          begin
-            match stack with
-            | [] ->
-              let (dir, level, files) = dlf in
-              iter_files dir level files
-            | (dir, files) :: stack ->
-              iter_subfiles dlf stack dir files
-          end
-      | file :: files ->
-        let filename = Filename.concat dir file in
-        if String.capitalize file = modname_annot then
-          f filename idents
+  and iter_files dir level files =
+    match files with
+      [] -> iter (Filename.concat dir "..") (level+1)
+    | file :: files ->
+      let filename = Filename.concat dir file in
+      if String.capitalize file = modname_annot then
+        f filename idents
+      else
+        if not (StringSet.mem file AnnotMisc.skip_dirs) &&
+          AnnotMisc.is_directory filename then
+          iter_sub (dir,level,files) [] filename
         else
-          if not (StringSet.mem file skip_dirs) &&
-            AnnotMisc.is_directory filename then
-            iter_sub dlf ((dir,files) :: stack)
-              filename
-          else
-            iter_subfiles dlf stack dir files
+          iter_files dir level files
 
-    in
-    iter "." 0
+  and iter_sub dlf stack dir =
+    let files = AnnotMisc.readdir dir in
+    let files = Array.to_list files in
+    iter_subfiles dlf stack dir files
+
+  and iter_subfiles dlf stack dir files =
+    match files with
+      [] ->
+        begin
+          match stack with
+          | [] ->
+            let (dir, level, files) = dlf in
+            iter_files dir level files
+          | (dir, files) :: stack ->
+            iter_subfiles dlf stack dir files
+        end
+    | file :: files ->
+      let filename = Filename.concat dir file in
+      if String.capitalize file = modname_annot then
+        f filename idents
+      else
+        if not (StringSet.mem file AnnotMisc.skip_dirs) &&
+          AnnotMisc.is_directory filename then
+          iter_sub dlf ((dir,files) :: stack)
+            filename
+        else
+          iter_subfiles dlf stack dir files
+
+  in
+  iter "." 0
 
 let iter_idents annot_file f =
-  let { annot_infos } = AnnotParser.parse_file annot_file in
+  let annot_file = AnnotParser.parse_file annot_file in
   List.iter (fun (loc, infos) ->
     List.iter (function
     | Type _ -> ()
     | Ident ident ->
-      let ident = AnnotParser.parse_ident ident in
+      let ident = AnnotParser.parse_ident annot_file ident in
       f loc ident
     ) infos
-  ) annot_infos
+  ) annot_file.annot_infos
